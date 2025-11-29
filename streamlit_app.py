@@ -1,19 +1,16 @@
 import streamlit as st
 import psycopg2
 import pandas as pd
-import openai
-
+from openai import OpenAI   
 
 st.set_page_config(layout="wide")
-PASSWORD = "runproject2"   
+PASSWORD = "runproject2"
 
 DB_URL = "postgresql://rameen:Lc1CuAsGOfS0dvErr8F0LZtiPBr1PW7s@dpg-d4l3apfpm1nc738jaj50-a.virginia-postgres.render.com/mini_project2"
-
 
 st.title("Mini Project 2 – Streamlit + Render")
 
 pw = st.text_input("Enter password:", type="password")
-
 if pw != PASSWORD:
     st.stop()
 
@@ -26,8 +23,8 @@ def connect():
 
 conn = connect()
 
-
 left, right = st.columns(2)
+
 
 with left:
     st.subheader("Run SQL Query")
@@ -53,7 +50,7 @@ with right:
     if st.button("Generate SQL"):
         try:
             prompt = f"""
-            Convert the user's request into a valid SQL query using the existing schema:
+            Convert this request into a valid SQL query using the schema:
             region(regionID, region)
             country(countryID, country, regionID)
             customer(customerID, firstname, lastname, address, city, countryID)
@@ -64,12 +61,14 @@ with right:
             Output ONLY the SQL query.
             """
 
-            response = openai.ChatCompletion.create(
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+
+            response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}]
             )
 
-            sql = response["choices"][0]["message"]["content"].strip()
+            sql = response.choices[0].message.content.strip()
             st.code(sql)
 
             try:
