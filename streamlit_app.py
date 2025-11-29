@@ -1,5 +1,6 @@
 import streamlit as st
 import psycopg2
+import os
 import pandas as pd
 from openai import OpenAI   
 
@@ -61,7 +62,8 @@ with right:
             Output ONLY the SQL query.
             """
 
-            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+
 
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
