@@ -68,7 +68,7 @@ pw = st.text_input("Enter password:", type="password")
 if pw != PASSWORD:
     st.stop()
 
-st.success("Access granted!")
+st.success("Access granted.")
 
 @st.cache_resource
 def connect():
@@ -84,11 +84,8 @@ with left:
 
     sql_examples = {
         "Show all regions": "SELECT * FROM region;",
-
         "Show all countries": "SELECT * FROM country ORDER BY country;",
-
         "Show 10 customers": "SELECT * FROM customer LIMIT 10;",
-
         "Top 10 best-selling products": """
             SELECT p.productname, SUM(od.quantityOrdered) AS total_sold
             FROM orderdetail od
@@ -97,7 +94,6 @@ with left:
             ORDER BY total_sold DESC
             LIMIT 10;
         """,
-
         "Total revenue by product": """
             SELECT p.productname,
                    SUM(p.productunitprice * od.quantityOrdered) AS revenue
@@ -106,7 +102,6 @@ with left:
             GROUP BY p.productname
             ORDER BY revenue DESC;
         """,
-
         "Total revenue by region": """
             SELECT r.region,
                    SUM(p.productunitprice * od.quantityOrdered) AS revenue
@@ -118,7 +113,6 @@ with left:
             GROUP BY r.region
             ORDER BY revenue DESC;
         """,
-
         "Customer order count by country": """
             SELECT co.country,
                    COUNT(*) AS total_orders
@@ -128,7 +122,6 @@ with left:
             GROUP BY co.country
             ORDER BY total_orders DESC;
         """,
-
         "Average quantity ordered per product": """
             SELECT p.productname,
                    AVG(od.quantityOrdered) AS avg_quantity
@@ -137,7 +130,6 @@ with left:
             GROUP BY p.productname
             ORDER BY avg_quantity DESC;
         """,
-
         "Most active customers (top 10)": """
             SELECT c.firstname || ' ' || c.lastname AS customer_name,
                    COUNT(*) AS order_count
@@ -147,8 +139,7 @@ with left:
             ORDER BY order_count DESC
             LIMIT 10;
         """,
-
-        "🔥 Complex: Highest revenue region + average quantity": """
+        "Highest revenue region (with avg qty)": """
             SELECT r.region,
                    SUM(p.productunitprice * od.quantityOrdered) AS total_revenue,
                    AVG(od.quantityOrdered) AS avg_quantity
@@ -182,23 +173,23 @@ with left:
 
 # ---------------- RIGHT: NATURAL LANGUAGE → SQL ----------------
 with right:
-    st.markdown("<div class='subheader'>Natural Language → SQL (ChatGPT)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='subheader'>Natural Language → SQL</div>", unsafe_allow_html=True)
 
     nl_examples = {
         "Which products are selling the most?": "Which products are selling the most?",
         "Which region generates the highest revenue?": "Which region generates the highest revenue?",
-        "Show me total orders per country": "Show me total orders per country",
-        "What is the average quantity ordered per product?": "What is the average quantity ordered per product?",
-        "Who are the top 10 customers by number of orders?": "Who are the top 10 customers by number of orders?",
-        "Show revenue by product": "Show revenue by product",
-        "List all customers with their country": "List all customers with their country",
+        "Show total orders per country": "Show total orders per country",
+        "Average quantity ordered per product": "Average quantity ordered per product",
+        "Top 10 customers by number of orders": "Top 10 customers by number of orders",
+        "Revenue by product": "Revenue by product",
+        "List customers with their country": "List customers with their country",
         "Which country places the most orders?": "Which country places the most orders?",
-        "Find the top 5 regions by revenue": "Find the top 5 regions by revenue",
-        "Which region earns the highest revenue and what is the average quantity ordered there?":
+        "Top 5 regions by revenue": "Top 5 regions by revenue",
+        "Highest revenue region with average quantity": "Highest revenue region with average quantity"
     }
 
     nl_choice = st.selectbox(
-        "Choose example natural-language question:",
+        "Choose example question:",
         ["None"] + list(nl_examples.keys())
     )
 
