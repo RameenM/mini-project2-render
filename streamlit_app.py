@@ -4,46 +4,52 @@ import pandas as pd
 import os
 from openai import OpenAI
 
-# ------------------ UI STYLING ------------------
+# ---------------- DARK MODE PROFESSIONAL UI ----------------
 st.markdown("""
     <style>
         .stApp {
-            background-color: #fafafa;
+            background-color: #111111;
         }
         .main-header {
             font-size: 32px !important;
             font-weight: 700 !important;
             padding-bottom: 10px;
-            color: #333333;
+            color: #ffffff;
         }
         .subheader {
             font-size: 20px !important;
             margin-top: 15px;
-            color: #4a4a4a !important;
-        }
-        .stTextArea textarea {
-            border-radius: 10px !important;
-        }
-        .stSelectbox div {
-            border-radius: 10px !important;
-        }
-        .stButton>button {
-            background-color: #e86e9b !important;
-            color: white !important;
-            border-radius: 10px !important;
-            height: 40px;
-            font-size: 16px;
-        }
-        .block-container {
-            padding-top: 1rem;
-            padding-bottom: 2rem;
-            padding-left: 3rem;
-            padding-right: 3rem;
+            color: #dddddd !important;
         }
         .divider {
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #444444;
             margin-top: 10px;
             margin-bottom: 20px;
+        }
+        textarea {
+            background-color: #1e1e1e !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+            border: 1px solid #444444 !important;
+        }
+        .stTextInput>div>div>input {
+            background-color: #1e1e1e !important;
+            color: white !important;
+            border-radius: 8px !important;
+            border: 1px solid #444444 !important;
+        }
+        .stSelectbox div {
+            background-color: #1e1e1e !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+        }
+        .stButton>button {
+            background-color: #0066cc !important;
+            color: white !important;
+            border-radius: 8px !important;
+            padding: 8px 18px;
+            font-size: 15px;
+            border: 1px solid #005bb5 !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -53,11 +59,11 @@ PASSWORD = "runproject2"
 
 DB_URL = "postgresql://rameen:Lc1CuAsGOfS0dvErr8F0LZtiPBr1PW7s@dpg-d4l3apfpm1nc738jaj50-a.virginia-postgres.render.com/mini_project2"
 
-# ------------------ TITLE ------------------
+# ---------------- HEADER ----------------
 st.markdown("<div class='main-header'>Mini Project 2 – Streamlit + Render</div>", unsafe_allow_html=True)
 st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
 
-# ------------------ PASSWORD ------------------
+# ---------------- PASSWORD ----------------
 pw = st.text_input("Enter password:", type="password")
 if pw != PASSWORD:
     st.stop()
@@ -72,7 +78,7 @@ conn = connect()
 
 left, right = st.columns(2)
 
-# ------------------ LEFT SIDE: MANUAL SQL ------------------
+# ---------------- LEFT: MANUAL SQL ----------------
 with left:
     st.markdown("<div class='subheader'>Run SQL Query</div>", unsafe_allow_html=True)
 
@@ -100,13 +106,12 @@ with left:
     }
 
     sql_choice = st.selectbox(
-        "Choose an example SQL query (optional):",
+        "Choose example query:",
         ["None"] + list(sql_examples.keys())
     )
 
     if sql_choice != "None":
         query = sql_examples[sql_choice]
-        st.code(query)
     else:
         query = st.text_area("Enter SQL:", height=200, placeholder="SELECT * FROM region;")
 
@@ -117,35 +122,31 @@ with left:
         except Exception as e:
             st.error(f"Error: {e}")
 
-# ------------------ RIGHT SIDE: CHATGPT NL → SQL ------------------
+# ---------------- RIGHT: NATURAL LANGUAGE → SQL ----------------
 with right:
     st.markdown("<div class='subheader'>Natural Language → SQL (ChatGPT)</div>", unsafe_allow_html=True)
 
     nl_examples = {
         "Which products are selling the most?": "Which products are selling the most?",
         "Which region generates the highest revenue?": "Which region generates the highest revenue?",
-        "Show me the total orders per country": "Show me the total orders per country",
+        "Show me total orders per country": "Show me total orders per country",
         "What is the average quantity ordered per product?": "What is the average quantity ordered per product?"
     }
 
     nl_choice = st.selectbox(
-        "Choose an example natural-language question (optional):",
+        "Choose example natural-language question:",
         ["None"] + list(nl_examples.keys())
     )
 
     if nl_choice != "None":
         nl = nl_examples[nl_choice]
-        st.code(nl)
     else:
-        nl = st.text_area(
-            "Ask a question:",
-            placeholder="Show me the first 10 products"
-        )
+        nl = st.text_area("Ask a question:", placeholder="Show me the first 10 products")
 
     if st.button("Generate SQL"):
         try:
             prompt = f"""
-            Convert this request into a valid SQL query using the schema:
+            Convert this request into a valid SQL query using this schema:
             region(regionID, region)
             country(countryID, country, regionID)
             customer(customerID, firstname, lastname, address, city, countryID)
@@ -165,7 +166,6 @@ with right:
 
             sql_raw = response.choices[0].message.content.strip()
 
-            # Clean SQL 
             clean_sql = sql_raw.replace("```sql", "").replace("```", "")
             if clean_sql.lower().startswith("sql "):
                 clean_sql = clean_sql[4:]
