@@ -1,8 +1,9 @@
+```python
 import streamlit as st
 import psycopg2
-import os
 import pandas as pd
-from openai import OpenAI   
+import os
+from openai import OpenAI
 
 st.set_page_config(layout="wide")
 PASSWORD = "runproject2"
@@ -18,15 +19,20 @@ if pw != PASSWORD:
 st.success("Access granted!")
 
 
+# ---------- DATABASE CONNECTION ----------
 @st.cache_resource
 def connect():
     return psycopg2.connect(DB_URL)
 
 conn = connect()
 
+
+# ---------- LAYOUT ----------
 left, right = st.columns(2)
 
-
+# ========================================================
+# LEFT SIDE — Manual SQL
+# ========================================================
 with left:
     st.subheader("Run SQL Query")
 
@@ -40,6 +46,9 @@ with left:
             st.error(f"Error: {e}")
 
 
+# ========================================================
+# RIGHT SIDE — ChatGPT NATURAL LANGUAGE → SQL
+# ========================================================
 with right:
     st.subheader("Natural Language → SQL (ChatGPT)")
 
@@ -64,17 +73,32 @@ with right:
 
             client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
-
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": prompt}]
             )
 
-            sql = response.choices[0].message.content.strip()
-            st.code(sql)
+            sql_raw = response.choices[0].message.content.strip()
 
+            # -------- CLEAN SQL OUTPUT --------
+            clean_sql = sql_raw
+
+            # Remove markdown fences
+            clean_sql = clean_sql.replace("```sql", "")
+            clean_sql = clean_sql.replace("```", "")
+
+            # Remove "sql " prefix (case-insensitive)
+            if clean_sql.lower().startswith("sql "):
+                clean_sql = clean_sql[4:]
+
+            # Remove stray backticks
+            clean_sql = clean_sql.replace("`", "").strip()
+
+            st.code(clean_sql)
+
+            # -------- EXECUTE CLEANED SQL --------
             try:
-                df = pd.read_sql(sql, conn)
+                df = pd.read_sql(clean_sql, conn)
                 st.dataframe(df)
             except Exception as e:
                 st.error(f"SQL Error: {e}")
