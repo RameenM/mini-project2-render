@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import psycopg2
 import pandas as pd
@@ -18,24 +17,16 @@ if pw != PASSWORD:
 
 st.success("Access granted!")
 
-
-# ---------- DATABASE CONNECTION ----------
 @st.cache_resource
 def connect():
     return psycopg2.connect(DB_URL)
 
 conn = connect()
 
-
-# ---------- LAYOUT ----------
 left, right = st.columns(2)
 
-# ========================================================
-# LEFT SIDE — Manual SQL
-# ========================================================
 with left:
     st.subheader("Run SQL Query")
-
     query = st.text_area("Enter SQL:", height=200, placeholder="SELECT * FROM region;")
 
     if st.button("Run SQL"):
@@ -45,17 +36,9 @@ with left:
         except Exception as e:
             st.error(f"Error: {e}")
 
-
-# ========================================================
-# RIGHT SIDE — ChatGPT NATURAL LANGUAGE → SQL
-# ========================================================
 with right:
     st.subheader("Natural Language → SQL (ChatGPT)")
-
-    nl = st.text_area(
-        "Ask a question:",
-        placeholder="Show me the first 10 products"
-    )
+    nl = st.text_area("Ask a question:", placeholder="Show me the first 10 products")
 
     if st.button("Generate SQL"):
         try:
@@ -80,23 +63,15 @@ with right:
 
             sql_raw = response.choices[0].message.content.strip()
 
-            # -------- CLEAN SQL OUTPUT --------
             clean_sql = sql_raw
-
-            # Remove markdown fences
             clean_sql = clean_sql.replace("```sql", "")
             clean_sql = clean_sql.replace("```", "")
-
-            # Remove "sql " prefix (case-insensitive)
             if clean_sql.lower().startswith("sql "):
                 clean_sql = clean_sql[4:]
-
-            # Remove stray backticks
             clean_sql = clean_sql.replace("`", "").strip()
 
             st.code(clean_sql)
 
-            # -------- EXECUTE CLEANED SQL --------
             try:
                 df = pd.read_sql(clean_sql, conn)
                 st.dataframe(df)
