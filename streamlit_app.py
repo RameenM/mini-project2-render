@@ -26,7 +26,7 @@ st.markdown("""
             margin-top: 10px;
             margin-bottom: 20px;
         }
-        textarea {
+        textarea, .stTextArea textarea {
             background-color: #1e1e1e !important;
             color: #ffffff !important;
             border-radius: 8px !important;
@@ -84,15 +84,30 @@ with left:
 
     sql_examples = {
         "Show all regions": "SELECT * FROM region;",
+
+        "Show all countries": "SELECT * FROM country ORDER BY country;",
+
+        "Show 10 customers": "SELECT * FROM customer LIMIT 10;",
+
         "Top 10 best-selling products": """
             SELECT p.productname, SUM(od.quantityOrdered) AS total_sold
-            FROM orderdetail od 
+            FROM orderdetail od
             JOIN product p ON od.productID = p.productID
             GROUP BY p.productname
             ORDER BY total_sold DESC
             LIMIT 10;
         """,
-        "Revenue by region": """
+
+        "Total revenue by product": """
+            SELECT p.productname,
+                   SUM(p.productunitprice * od.quantityOrdered) AS revenue
+            FROM orderdetail od
+            JOIN product p ON od.productID = p.productID
+            GROUP BY p.productname
+            ORDER BY revenue DESC;
+        """,
+
+        "Total revenue by region": """
             SELECT r.region,
                    SUM(p.productunitprice * od.quantityOrdered) AS revenue
             FROM orderdetail od
@@ -102,6 +117,49 @@ with left:
             JOIN region r ON co.regionID = r.regionID
             GROUP BY r.region
             ORDER BY revenue DESC;
+        """,
+
+        "Customer order count by country": """
+            SELECT co.country,
+                   COUNT(*) AS total_orders
+            FROM orderdetail od
+            JOIN customer c ON od.customerID = c.customerID
+            JOIN country co ON c.countryID = co.countryID
+            GROUP BY co.country
+            ORDER BY total_orders DESC;
+        """,
+
+        "Average quantity ordered per product": """
+            SELECT p.productname,
+                   AVG(od.quantityOrdered) AS avg_quantity
+            FROM orderdetail od
+            JOIN product p ON od.productID = p.productID
+            GROUP BY p.productname
+            ORDER BY avg_quantity DESC;
+        """,
+
+        "Most active customers (top 10)": """
+            SELECT c.firstname || ' ' || c.lastname AS customer_name,
+                   COUNT(*) AS order_count
+            FROM orderdetail od
+            JOIN customer c ON od.customerID = c.customerID
+            GROUP BY customer_name
+            ORDER BY order_count DESC
+            LIMIT 10;
+        """,
+
+        "🔥 Complex: Highest revenue region + average quantity": """
+            SELECT r.region,
+                   SUM(p.productunitprice * od.quantityOrdered) AS total_revenue,
+                   AVG(od.quantityOrdered) AS avg_quantity
+            FROM orderdetail od
+            JOIN product p ON od.productID = p.productID
+            JOIN customer c ON od.customerID = c.customerID
+            JOIN country co ON c.countryID = co.countryID
+            JOIN region r ON co.regionID = r.regionID
+            GROUP BY r.region
+            ORDER BY total_revenue DESC
+            LIMIT 1;
         """
     }
 
@@ -130,7 +188,13 @@ with right:
         "Which products are selling the most?": "Which products are selling the most?",
         "Which region generates the highest revenue?": "Which region generates the highest revenue?",
         "Show me total orders per country": "Show me total orders per country",
-        "What is the average quantity ordered per product?": "What is the average quantity ordered per product?"
+        "What is the average quantity ordered per product?": "What is the average quantity ordered per product?",
+        "Who are the top 10 customers by number of orders?": "Who are the top 10 customers by number of orders?",
+        "Show revenue by product": "Show revenue by product",
+        "List all customers with their country": "List all customers with their country",
+        "Which country places the most orders?": "Which country places the most orders?",
+        "Find the top 5 regions by revenue": "Find the top 5 regions by revenue",
+        "Which region earns the highest revenue and what is the average quantity ordered there?":
     }
 
     nl_choice = st.selectbox(
