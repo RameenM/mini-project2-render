@@ -7,49 +7,22 @@ from openai import OpenAI
 # ---------------- DARK MODE PROFESSIONAL UI ----------------
 st.markdown("""
     <style>
-        .stApp {
-            background-color: #111111;
-        }
-        .main-header {
-            font-size: 32px !important;
-            font-weight: 700 !important;
-            padding-bottom: 10px;
-            color: #ffffff;
-        }
-        .subheader {
-            font-size: 20px !important;
-            margin-top: 15px;
-            color: #dddddd !important;
-        }
-        .divider {
-            border-bottom: 1px solid #444444;
-            margin-top: 10px;
-            margin-bottom: 20px;
-        }
+        .stApp { background-color: #111111; }
+        .main-header { font-size: 32px !important; font-weight: 700 !important; padding-bottom: 10px; color: #ffffff; }
+        .subheader { font-size: 20px !important; margin-top: 15px; color: #dddddd !important; }
+        .divider { border-bottom: 1px solid #444444; margin-top: 20px; margin-bottom: 25px; }
         textarea, .stTextArea textarea {
-            background-color: #1e1e1e !important;
-            color: #ffffff !important;
-            border-radius: 8px !important;
-            border: 1px solid #444444 !important;
+            background-color: #1e1e1e !important; color: #ffffff !important;
+            border-radius: 8px !important; border: 1px solid #444444 !important;
         }
         .stTextInput>div>div>input {
-            background-color: #1e1e1e !important;
-            color: white !important;
-            border-radius: 8px !important;
-            border: 1px solid #444444 !important;
+            background-color: #1e1e1e !important; color: white !important;
+            border-radius: 8px !important; border: 1px solid #444444 !important;
         }
-        .stSelectbox div {
-            background-color: #1e1e1e !important;
-            color: #ffffff !important;
-            border-radius: 8px !important;
-        }
+        .stSelectbox div { background-color: #1e1e1e !important; color: #ffffff !important; border-radius: 8px !important; }
         .stButton>button {
-            background-color: #0066cc !important;
-            color: white !important;
-            border-radius: 8px !important;
-            padding: 8px 18px;
-            font-size: 15px;
-            border: 1px solid #005bb5 !important;
+            background-color: #0066cc !important; color: white !important; border-radius: 8px !important;
+            padding: 8px 18px; font-size: 15px; border: 1px solid #005bb5 !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -59,24 +32,23 @@ PASSWORD = "runproject2"
 
 DB_URL = "postgresql://rameen:Lc1CuAsGOfS0dvErr8F0LZtiPBr1PW7s@dpg-d4l3apfpm1nc738jaj50-a.virginia-postgres.render.com/mini_project2"
 
-# ---------------- HEADER ----------------
+# ----------------HEADER ----------------
 st.markdown("<div class='main-header'>Mini Project 2 – Streamlit + Render</div>", unsafe_allow_html=True)
 st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
 
-# ---------------- PASSWORD ----------------
 pw = st.text_input("Enter password:", type="password")
 if pw != PASSWORD:
     st.stop()
 
 st.success("Access granted.")
 
+
 @st.cache_resource
 def connect():
     return psycopg2.connect(DB_URL)
 
-conn = connect()
 
-left, right = st.columns(2)
+conn = connect()
 
 # -------------------------------------------------------------------
 # 🔹 FUNCTION TO DISPLAY RESULTS IN ROW FORMAT
@@ -89,191 +61,134 @@ def display_rows(df):
             st.write(f"- **{col}:** {row[col]}")
         st.markdown("---")
 
-# -------------------------------------------------------------------
-# 🔹 LEFT SIDE – MANUAL SQL
-# -------------------------------------------------------------------
-with left:
-    st.markdown("<div class='subheader'>Run SQL Query</div>", unsafe_allow_html=True)
+# ===================================================================
+# 🔹 **SECTION 1 — RUN SQL QUERY (TOP SECTION)**
+# ===================================================================
+st.markdown("<div class='subheader'>Run SQL Query</div>", unsafe_allow_html=True)
 
-    sql_examples = {
-        "Show all regions": "SELECT * FROM region;",
-        "Show all countries": "SELECT * FROM country ORDER BY country;",
-        "Show 10 customers": "SELECT * FROM customer LIMIT 10;",
+sql_examples = {
+    "Show all regions": "SELECT * FROM region;",
+    "Show all countries": "SELECT * FROM country ORDER BY country;",
+    "Show 10 customers": "SELECT * FROM customer LIMIT 10;",
 
-        "Top 10 best-selling products": """
-            SELECT p.productname, SUM(od.quantityOrdered) AS total_sold
-            FROM orderdetail od
-            JOIN product p ON od.productID = p.productID
-            GROUP BY p.productname
-            ORDER BY total_sold DESC
-            LIMIT 10;
-        """,
+    "Top 10 best-selling products": """
+        SELECT p.productname, SUM(od.quantityOrdered) AS total_sold
+        FROM orderdetail od
+        JOIN product p ON od.productID = p.productID
+        GROUP BY p.productname
+        ORDER BY total_sold DESC
+        LIMIT 10;
+    """,
 
-        "Total revenue by product": """
-            SELECT p.productname,
-                   SUM(p.productunitprice * od.quantityOrdered) AS revenue
-            FROM orderdetail od
-            JOIN product p ON od.productID = p.productID
-            GROUP BY p.productname
-            ORDER BY revenue DESC;
-        """,
+    "Total revenue by product": """
+        SELECT p.productname,
+               SUM(p.productunitprice * od.quantityOrdered) AS revenue
+        FROM orderdetail od
+        JOIN product p ON od.productID = p.productID
+        GROUP BY p.productname
+        ORDER BY revenue DESC;
+    """,
 
-        "Total revenue by region": """
-            SELECT r.region,
-                   SUM(p.productunitprice * od.quantityOrdered) AS revenue
-            FROM orderdetail od
-            JOIN product p ON od.productID = p.productID
-            JOIN customer c ON od.customerID = c.customerID
-            JOIN country co ON c.countryID = co.countryID
-            JOIN region r ON co.regionID = r.regionID
-            GROUP BY r.region
-            ORDER BY revenue DESC;
-        """,
+    "Total revenue by region": """
+        SELECT r.region,
+               SUM(p.productunitprice * od.quantityOrdered) AS revenue
+        FROM orderdetail od
+        JOIN product p ON od.productID = p.productID
+        JOIN customer c ON od.customerID = c.customerID
+        JOIN country co ON c.countryID = co.countryID
+        JOIN region r ON co.regionID = r.regionID
+        GROUP BY r.region
+        ORDER BY revenue DESC;
+    """,
 
-        "Customer order count by country": """
-            SELECT co.country,
-                   COUNT(*) AS total_orders
-            FROM orderdetail od
-            JOIN customer c ON od.customerID = c.customerID
-            JOIN country co ON c.countryID = co.countryID
-            GROUP BY co.country
-            ORDER BY total_orders DESC;
-        """,
+    "Customer order count by country": """
+        SELECT co.country,
+               COUNT(*) AS total_orders
+        FROM orderdetail od
+        JOIN customer c ON od.customerID = c.customerID
+        JOIN country co ON c.countryID = co.countryID
+        GROUP BY co.country
+        ORDER BY total_orders DESC;
+    """,
 
-        "Average quantity ordered per product": """
-            SELECT p.productname,
-                   AVG(od.quantityOrdered) AS avg_quantity
-            FROM orderdetail od
-            JOIN product p ON od.productID = p.productID
-            GROUP BY p.productname
-            ORDER BY avg_quantity DESC;
-        """,
+    "Average quantity per product": """
+        SELECT p.productname,
+               AVG(od.quantityOrdered) AS avg_quantity
+        FROM orderdetail od
+        JOIN product p ON od.productID = p.productID
+        GROUP BY p.productname
+        ORDER BY avg_quantity DESC;
+    """
+}
 
-        "Most active customers (top 10)": """
-            SELECT c.firstname || ' ' || c.lastname AS customer_name,
-                   COUNT(*) AS order_count
-            FROM orderdetail od
-            JOIN customer c ON od.customerID = c.customerID
-            GROUP BY customer_name
-            ORDER BY order_count DESC
-            LIMIT 10;
-        """,
+sql_choice = st.selectbox(
+    "Choose example query:",
+    ["None"] + list(sql_examples.keys())
+)
 
-        "Highest revenue region (with avg qty)": """
-            SELECT r.region,
-                   SUM(p.productunitprice * od.quantityOrdered) AS total_revenue,
-                   AVG(od.quantityOrdered) AS avg_quantity
-            FROM orderdetail od
-            JOIN product p ON od.productID = p.productID
-            JOIN customer c ON od.customerID = c.customerID
-            JOIN country co ON c.countryID = co.countryID
-            JOIN region r ON co.regionID = r.regionID
-            GROUP BY r.region
-            ORDER BY total_revenue DESC
-            LIMIT 1;
+if sql_choice != "None":
+    query = sql_examples[sql_choice]
+else:
+    query = st.text_area("Enter SQL:", height=200, placeholder="SELECT * FROM region;")
+
+if st.button("Run SQL"):
+    try:
+        df = pd.read_sql(query, conn)
+
+        st.dataframe(df)
+        display_rows(df)
+
+    except Exception as e:
+        st.error(f"Error: {e}")
+
+# ===================================================================
+# 🔹 **SECTION 2 — NATURAL LANGUAGE → SQL (BOTTOM SECTION)**
+# ===================================================================
+
+st.markdown("<div class='divider'></div>", unsafe_allow_html=True)
+st.markdown("<div class='subheader'>Natural Language → SQL</div>", unsafe_allow_html=True)
+
+nl_choice = st.selectbox(
+    "Choose example question:",
+    ["None", "Which region generates the highest revenue?", "Show total orders per country",
+     "Top 10 customers by number of orders", "Average quantity ordered per product"]
+)
+
+if nl_choice != "None":
+    nl = nl_choice
+else:
+    nl = st.text_area("Ask a question:", placeholder="Show me the first 10 products")
+
+if st.button("Generate SQL"):
+    try:
+        prompt = f"""
+        Convert this request into a valid SQL query using this schema:
+        region(regionID, region)
+        country(countryID, country, regionID)
+        customer(customerID, firstname, lastname, address, city, countryID)
+        product(productID, productname, productunitprice, productcategoryID)
+        orderdetail(orderID, customerID, productID, orderDate, quantityOrdered)
+
+        User request: {nl}
+        Output ONLY the SQL query.
         """
-    }
 
-    sql_choice = st.selectbox(
-        "Choose example query:",
-        ["None"] + list(sql_examples.keys())
-    )
+        client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
-    if sql_choice != "None":
-        query = sql_examples[sql_choice]
-    else:
-        query = st.text_area("Enter SQL:", height=200, placeholder="SELECT * FROM region;")
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}]
+        )
 
-    if st.button("Run SQL"):
-        try:
-            df = pd.read_sql(query, conn)
+        sql_raw = response.choices[0].message.content.strip()
+        clean_sql = sql_raw.replace("```sql", "").replace("```", "").replace("`", "").strip()
 
-            # TABLE VIEW
-            st.dataframe(df)
+        st.code(clean_sql)
 
-            # ROW VIEW
-            display_rows(df)
+        df = pd.read_sql(clean_sql, conn)
 
-        except Exception as e:
-            st.error(f"Error: {e}")
+        st.dataframe(df)
+        display_rows(df)
 
-# -------------------------------------------------------------------
-# 🔹 RIGHT SIDE – NATURAL LANGUAGE → SQL
-# -------------------------------------------------------------------
-with right:
-    st.markdown("<div class='subheader'>Natural Language → SQL</div>", unsafe_allow_html=True)
-
-    nl_examples = {
-        "Which products are selling the most?": "Which products are selling the most?",
-        "Which region generates the highest revenue?": "Which region generates the highest revenue?",
-        "Show total orders per country": "Show total orders per country using correct joins",
-        "Average quantity ordered per product": "Average quantity ordered per product",
-        "Top 10 customers by number of orders": "Top 10 customers by number of orders",
-        "Revenue by product": "Revenue by product",
-        "List customers with their country name": "List all customers with their country name using a join",
-        "Which country places the most orders?": "Which country places the most orders using countryID join?",
-        "Top 5 regions by revenue": "Top 5 regions by revenue",
-        "Highest revenue region with average quantity": "Region with highest revenue and average quantity"
-    }
-
-    nl_choice = st.selectbox(
-        "Choose example question:",
-        ["None"] + list(nl_examples.keys())
-    )
-
-    if nl_choice != "None":
-        nl = nl_examples[nl_choice]
-    else:
-        nl = st.text_area("Ask a question:", placeholder="Show me the first 10 products")
-
-    if st.button("Generate SQL"):
-        try:
-            prompt = f"""
-            Convert this request into a valid SQL query using this schema:
-            region(regionID, region)
-            country(countryID, country, regionID)
-            customer(customerID, firstname, lastname, address, city, countryID)
-            product(productID, productname, productunitprice, productcategoryID)
-            orderdetail(orderID, customerID, productID, orderDate, quantityOrdered)
-
-            IMPORTANT:
-            - customer does NOT have a 'country' column
-            - ALWAYS join country ON customer.countryID = country.countryID
-            - NEVER use c.country (does NOT exist)
-
-            User request: {nl}
-            Output ONLY the SQL query.
-            """
-
-            client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[{"role": "user", "content": prompt}]
-            )
-
-            sql_raw = response.choices[0].message.content.strip()
-
-            clean_sql = (
-                sql_raw.replace("```sql", "")
-                .replace("```", "")
-                .replace("`", "")
-                .strip()
-            )
-
-            st.code(clean_sql)
-
-            try:
-                df = pd.read_sql(clean_sql, conn)
-
-                # TABLE VIEW
-                st.dataframe(df)
-
-                # ROW VIEW
-                display_rows(df)
-
-            except Exception as e:
-                st.error(f"SQL Error: {e}")
-
-        except Exception as e:
-            st.error(f"ChatGPT error: {e}")
+    except Exception as e:
+        st.error(f"SQL Error: {e}")
