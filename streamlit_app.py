@@ -142,21 +142,32 @@ else:
 if st.button("Generate SQL"):
     try:
         prompt = f"""
-        Convert this request into a valid SQL query using this schema:
+        Convert this request into a valid SQL query using ONLY this schema:
         region(regionID, region)
         country(countryID, country, regionID)
         customer(customerID, firstname, lastname, address, city, countryID)
         product(productID, productname, productunitprice, productcategoryID)
         orderdetail(orderID, customerID, productID, orderDate, quantityOrdered)
 
-        IMPORTANT RULES:
-        - customer does NOT have a country column
-        - country name MUST come from country.country
-        - ALWAYS join customer.countryID = country.countryID
-        - NEVER use c.country
+        STRICT RULES:
+        - customer has NO 'country' column
+        - ONLY use country from country.country
+        - ALWAYS join: customer.countryID = country.countryID
+        - NEVER reference c.country
+        - Use table aliases: c, co, od, p, r
+        - NEVER invent columns
+        - Follow PostgreSQL syntax exactly
+
+        EXAMPLE OF CORRECT JOIN:
+        SELECT co.country, COUNT(*) AS total_orders
+        FROM customer AS c
+        JOIN country AS co ON c.countryID = co.countryID
+        JOIN orderdetail AS od ON c.customerID = od.customerID
+        GROUP BY co.country;
 
         User request: {nl}
-        Output ONLY the SQL query.
+
+        Return ONLY the SQL query.
         """
 
         client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
@@ -176,3 +187,4 @@ if st.button("Generate SQL"):
 
     except Exception as e:
         st.error(f"SQL Error: {e}")
+
