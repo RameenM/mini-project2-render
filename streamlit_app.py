@@ -78,7 +78,20 @@ conn = connect()
 
 left, right = st.columns(2)
 
-# ---------------- LEFT: MANUAL SQL ----------------
+# -------------------------------------------------------------------
+# 🔹 FUNCTION TO DISPLAY RESULTS IN ROW FORMAT
+# -------------------------------------------------------------------
+def display_rows(df):
+    st.markdown("### Row View")
+    for idx, row in df.iterrows():
+        st.markdown(f"**Row {idx+1}**")
+        for col in df.columns:
+            st.write(f"- **{col}:** {row[col]}")
+        st.markdown("---")
+
+# -------------------------------------------------------------------
+# 🔹 LEFT SIDE – MANUAL SQL
+# -------------------------------------------------------------------
 with left:
     st.markdown("<div class='subheader'>Run SQL Query</div>", unsafe_allow_html=True)
 
@@ -174,15 +187,22 @@ with left:
     if st.button("Run SQL"):
         try:
             df = pd.read_sql(query, conn)
+
+            # TABLE VIEW
             st.dataframe(df)
+
+            # ROW VIEW
+            display_rows(df)
+
         except Exception as e:
             st.error(f"Error: {e}")
 
-# ---------------- RIGHT: NATURAL LANGUAGE → SQL ----------------
+# -------------------------------------------------------------------
+# 🔹 RIGHT SIDE – NATURAL LANGUAGE → SQL
+# -------------------------------------------------------------------
 with right:
     st.markdown("<div class='subheader'>Natural Language → SQL</div>", unsafe_allow_html=True)
 
-    # FIXED NL EXAMPLES — no broken queries anymore
     nl_examples = {
         "Which products are selling the most?": "Which products are selling the most?",
         "Which region generates the highest revenue?": "Which region generates the highest revenue?",
@@ -218,8 +238,8 @@ with right:
 
             IMPORTANT:
             - customer does NOT have a 'country' column
-            - To get country name, ALWAYS join country ON customer.countryID = country.countryID
-            - NEVER reference c.country (it does NOT exist)
+            - ALWAYS join country ON customer.countryID = country.countryID
+            - NEVER use c.country (does NOT exist)
 
             User request: {nl}
             Output ONLY the SQL query.
@@ -234,16 +254,24 @@ with right:
 
             sql_raw = response.choices[0].message.content.strip()
 
-            clean_sql = sql_raw.replace("```sql", "").replace("```", "")
-            if clean_sql.lower().startswith("sql "):
-                clean_sql = clean_sql[4:]
-            clean_sql = clean_sql.replace("`", "").strip()
+            clean_sql = (
+                sql_raw.replace("```sql", "")
+                .replace("```", "")
+                .replace("`", "")
+                .strip()
+            )
 
             st.code(clean_sql)
 
             try:
                 df = pd.read_sql(clean_sql, conn)
+
+                # TABLE VIEW
                 st.dataframe(df)
+
+                # ROW VIEW
+                display_rows(df)
+
             except Exception as e:
                 st.error(f"SQL Error: {e}")
 
